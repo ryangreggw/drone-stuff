@@ -2,7 +2,10 @@ import cv2
 from djitellopy import tello
 from datetime import datetime
 from threading import Thread
+
+
 def record_tello_video_stream(frame_read: tello.BackgroundFrameRead, out: cv2.VideoWriter):
+
     try:
         while True:
             # Capture a frame from the Tello video stream
@@ -23,6 +26,8 @@ def record_tello_video_stream(frame_read: tello.BackgroundFrameRead, out: cv2.Vi
         # Close the window and release the video writer
         cv2.destroyAllWindows()
         out.release()
+
+
 def move_drone():
     # initiate drone movement
     drone = tello.Tello()
@@ -42,27 +47,39 @@ def move_drone():
         drone.rotate_clockwise(90)
         drone.move_forward(152)
         drone.rotate_clockwise(90)
+
+
 def main():
+
     # Create timestamp for unique video filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
     # Initialize Tello drone and establish connection
     drone = tello.Tello()
     drone.connect()
     drone.streamon()
+
     # Get frame reader and video dimensions
     frame_read = drone.get_frame_read()
     h, w, _ = frame_read.frame.shape
+
     # Set up video writer
     out = cv2.VideoWriter(f'{timestamp}_tello_recording.mp4', cv2.VideoWriter.fourcc(*'mp4v'), 30, (w, h))
+
     # Start recording in separate thread
     recorder = Thread(target=record_tello_video_stream, args=(frame_read, out))
     recorder.start()
+
     # Start drone movement in main thread
     move_drone()
+
     # Wait for recording thread to finish
     recorder.join()
+
     # End message and reboot
     print('End of main, calling drone.reboot')
     drone.reboot()
+
+
 if __name__ == "__main__":
     main()
